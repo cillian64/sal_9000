@@ -2,8 +2,9 @@
 name = "sal_9000"
 version = "0.1.0"
 authors = ["David Turner <git@dwt27.co.uk>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 serenity = { version="0.10", default-features = false, features = ["client", "gateway", "rustls_backend", "model"] }
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+rand = "0.8.4"

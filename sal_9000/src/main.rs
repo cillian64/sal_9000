@@ -1,10 +1,12 @@
 use std::env;
-
+use std::str::SplitAsciiWhitespace;
 use serenity::{
     async_trait,
     model::{channel::Message, gateway::Ready},
     prelude::*,
 };
+use rand::Rng;
+
 
 struct Handler;
 
@@ -15,6 +17,40 @@ async fn try_respond(msg: &Message, ctx: &Context, response: &str) {
     if let Err(why) = msg.channel_id.say(&ctx.http, response).await {
         println!("Error sending message: {:?}", why);
     }
+}
+
+async fn cmd_ping(msg: &Message, ctx: &Context, _args: &SplitAsciiWhitespace<'_>) {
+    try_respond(&msg, &ctx, "Pong!").await;
+}
+
+async fn cmd_roll(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace<'_>) {
+    // Choose the roll limits
+    let lower: u32 = 1;
+    let upper: u32 = match args.next() {
+        Some(x) => {
+            let x: u32 = match x.parse() {
+                Ok(x) => x,
+                Err(_) => {
+                    try_respond(&msg, &ctx, "That doesn't seem to be a positive number.").await;
+                    return;
+                },
+            };
+            if x < 1 {
+                try_respond(&msg, &ctx, "The roll limit must be at least 1.").await;
+                return;
+            }
+            x
+        },
+        None => 100, // Default upper limit of 100 (inclusive)
+    };
+
+    // Ensure the RNG handle doesn't cross the await - it's not Send.
+    let response = {
+        let mut rng = rand::thread_rng();
+        let number: u32 = rng.gen_range(lower..(upper + 1));
+        format!("Your roll: {}", number)
+    };
+    try_respond(&msg, &ctx, &response).await;
 }
 
 #[async_trait]
@@ -56,7 +92,8 @@ impl EventHandler for Handler {
         let command = command.split_at(1).1;
 
         match command {
-            "ping" => try_respond(&msg, &ctx, "Pong!").await,
+            "ping" => cmd_ping(&msg, &ctx, &split).await,
+            "roll" => cmd_roll(&msg, &ctx, &mut split).await,
             _ => try_respond(&msg, &ctx, "Unknown command.").await,
         };
     }
