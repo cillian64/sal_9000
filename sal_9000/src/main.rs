@@ -8,6 +8,15 @@ use serenity::{
 
 struct Handler;
 
+/// Try to respond to a message in the same channel (or DM).  If we can't send
+/// the message for whatever reason then just print an error and fail
+/// gracefully.
+async fn try_respond(msg: &Message, ctx: &Context, response: &str) {
+    if let Err(why) = msg.channel_id.say(&ctx.http, response).await {
+        println!("Error sending message: {:?}", why);
+    }
+}
+
 #[async_trait]
 impl EventHandler for Handler {
     /// Handle `message` events.  Launched concurrently from a threadpool.
@@ -33,11 +42,23 @@ impl EventHandler for Handler {
             return;
         }
 
-        if msg.content == "!ping" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!").await {
-                println!("Error sending message: {:?}", why);
-            }
+        // Now parse the first "command" part of the string
+        let mut split = msg.content.trim().split_ascii_whitespace();
+        let command = split.next();
+        let command = match command {
+            Some(command) => command,
+            None => return, // Blank message or only whitespace
+        };
+        if command.chars().nth(0) != Some('!') {
+            // Not a command
+            return;
         }
+        let command = command.split_at(1).1;
+
+        match command {
+            "ping" => try_respond(&msg, &ctx, "Pong!").await,
+            _ => try_respond(&msg, &ctx, "Unknown command.").await,
+        };
     }
 
     /// Run when everything is ready to go.  Context includes data such as
