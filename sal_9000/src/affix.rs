@@ -63,6 +63,34 @@ pub fn affix_name(affix_id: u8) -> &'static str {
     }
 }
 
+/// Get the bot-format emoji for the affix with the given ID
+pub fn affix_emoji(affix_id: u8) -> &'static str {
+    match affix_id {
+        1 => "",
+        2 => "",
+        3 => "<:volcanic:941085705545871390>",
+        4 => "<:necrotic:941085705558433862>",
+        5 => "",
+        6 => "<:raging:941085705491349594>",
+        7 => "<:bolstering:941085705440993340>",
+        8 => "<:sanguine:941085705529085952>",
+        9 => "<:tyrannical:941085705600372756>",
+        10 => "<:fortified:941085705055117363>",
+        11 => "<:bursting:941085705399074846>",
+        12 => "<:grievous:941085705478766612>",
+        13 => "<:explosive:941085705432612954>",
+        14 => "<:quaking:941085705478742076>",
+        119 => "",
+        120 => "",
+        121 => "",
+        122 => "<:inspiring:941085705440993390>",
+        123 => "<:spiteful:941085705214500886>",
+        124 => "<:storming:941085705491329094>",
+        128 => "<:tormented:941085705503907860>",
+        _ => "",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

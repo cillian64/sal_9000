@@ -55,6 +55,12 @@ async fn cmd_roll(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace<
     try_respond(&msg, &ctx, &response).await;
 }
 
+fn affix_name_and_emoji(affix_id: &u8) -> String {
+    let affix_name = affix::affix_name(*affix_id);
+    let affix_emoji = affix::affix_emoji(*affix_id);
+    affix_emoji.to_owned() + " " + affix_name
+}
+
 async fn cmd_affix(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace<'_>) {
     // Work out whether to do this week or next week
     let (week_str, datetime) = match args.next() {
@@ -68,8 +74,8 @@ async fn cmd_affix(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace
     };
 
     let affixes = affix::get_affixes(datetime);
-    let affix_str: Vec<&'static str> = affixes.iter().map(|id| affix::affix_name(*id)).collect();
-    let response = week_str.to_owned() + " week's affixes: " + &affix_str.join(", ");
+    let affix_strs: Vec<String> = affixes.iter().map(affix_name_and_emoji).collect();
+    let response = week_str.to_owned() + " week's affixes:\n" + &affix_strs.join("\n");
     try_respond(&msg, &ctx, &response).await;
 }
 
