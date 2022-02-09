@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use rand::Rng;
 use serenity::{
     async_trait,
@@ -6,6 +7,8 @@ use serenity::{
 };
 use std::env;
 use std::str::SplitAsciiWhitespace;
+
+mod affix;
 
 struct Handler;
 
@@ -52,6 +55,24 @@ async fn cmd_roll(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace<
     try_respond(&msg, &ctx, &response).await;
 }
 
+async fn cmd_affix(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace<'_>) {
+    // Work out whether to do this week or next week
+    let (week_str, datetime) = match args.next() {
+        Some("this") => ("This", Utc::now()),
+        Some("next") => ("Next", Utc::now() + chrono::Duration::weeks(1)),
+        Some(_) => {
+            try_respond(&msg, &ctx, "Use \"!affix this\" or \"!affix next\"").await;
+            return;
+        }
+        None => ("This", Utc::now()), // Default: this week
+    };
+
+    let affixes = affix::get_affixes(datetime);
+    let affix_str: Vec<&'static str> = affixes.iter().map(|id| affix::affix_name(*id)).collect();
+    let response = week_str.to_owned() + " week's affixes: " + &affix_str.join(", ");
+    try_respond(&msg, &ctx, &response).await;
+}
+
 #[async_trait]
 impl EventHandler for Handler {
     /// Handle `message` events.  Launched concurrently from a threadpool.
@@ -95,6 +116,7 @@ impl EventHandler for Handler {
         match command {
             "ping" => cmd_ping(&msg, &ctx, &split).await,
             "roll" => cmd_roll(&msg, &ctx, &mut split).await,
+            "affix" => cmd_affix(&msg, &ctx, &mut split).await,
             _ => try_respond(&msg, &ctx, "Unknown command.").await,
         };
     }
