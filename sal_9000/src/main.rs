@@ -1,12 +1,11 @@
-use std::env;
-use std::str::SplitAsciiWhitespace;
+use rand::Rng;
 use serenity::{
     async_trait,
     model::{channel::Message, gateway::Ready},
     prelude::*,
 };
-use rand::Rng;
-
+use std::env;
+use std::str::SplitAsciiWhitespace;
 
 struct Handler;
 
@@ -33,14 +32,14 @@ async fn cmd_roll(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace<
                 Err(_) => {
                     try_respond(&msg, &ctx, "That doesn't seem to be a positive number.").await;
                     return;
-                },
+                }
             };
             if x < 1 {
                 try_respond(&msg, &ctx, "The roll limit must be at least 1.").await;
                 return;
             }
             x
-        },
+        }
         None => 100, // Default upper limit of 100 (inclusive)
     };
 
@@ -65,9 +64,11 @@ impl EventHandler for Handler {
             }
         };
 
-        // Determine whether to respond.  We only respond in DMs or #hal
+        // Determine whether to respond.  We only respond in DMs or #sal-9000
         let respond = match &channel {
-            serenity::model::channel::Channel::Guild(guild_channel) => guild_channel.name == "hal",
+            serenity::model::channel::Channel::Guild(guild_channel) => {
+                guild_channel.name == "sal-9000"
+            }
             serenity::model::channel::Channel::Private(_) => true,
             serenity::model::channel::Channel::Category(_) => false,
             _ => false,
