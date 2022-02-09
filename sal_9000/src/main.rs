@@ -46,12 +46,29 @@ async fn cmd_roll(msg: &Message, ctx: &Context, args: &mut SplitAsciiWhitespace<
         None => 100, // Default upper limit of 100 (inclusive)
     };
 
-    // Ensure the RNG handle doesn't cross the await - it's not Send.
-    let response = {
-        let mut rng = rand::thread_rng();
-        let number: u32 = rng.gen_range(lower..(upper + 1));
-        format!("Your roll: {}", number)
+    // Try to use the user's guild nick, but failing that use their username.
+    let username = &msg.author.name;
+    let author_name = match msg.guild_id {
+        Some(guild_id) => {
+            let author_id = msg.author.id;
+            match guild_id.member(&ctx.http, author_id).await {
+                Ok(member) => match member.nick {
+                    Some(nick) => nick,
+                    None => username.to_owned(),
+                },
+                Err(_) => username.to_owned(),
+            }
+        }
+        None => username.to_owned(),
     };
+
+    // Ensure the RNG handle doesn't cross the await - it's not Send.
+    let roll: u32 = {
+        let mut rng = rand::thread_rng();
+        rng.gen_range(lower..(upper + 1))
+    };
+
+    let response = format!("{} rolled {} ({})", author_name, roll, upper);
     try_respond(&msg, &ctx, &response).await;
 }
 
