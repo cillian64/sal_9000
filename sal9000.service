@@ -1,0 +1,19 @@
+# systemd service file for commutebot
+# =======================
+
+[Unit]
+Description=SAL-9000 discord bot
+After=network.target
+
+[Service]
+Type=simple
+User=sal9000
+WorkingDirectory=/home/sal9000/sal_9000/sal_9000
+ExecStart=/home/sal9000/.cargo/bin/cargo run
+Restart=always
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+
+[Install]
+WantedBy=multi-user.target
