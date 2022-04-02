@@ -6,6 +6,7 @@ use serenity::{
     prelude::*,
 };
 use std::env;
+use std::fs;
 use std::str::SplitAsciiWhitespace;
 
 mod affix;
@@ -153,7 +154,23 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    println!("Trying to load discord token from environment...");
+    let token = env::var("DISCORD_TOKEN");
+    let token = match token {
+        Ok(token) => token,
+        Err(_) => {
+            println!("Env variable not found, trying to load discord token from file...");
+            let token = fs::read_to_string("discord_token.txt");
+            match token {
+                Ok(token) => token.trim().to_owned(),
+                Err(_) => {
+                    println!("Could not read discord_token.txt.  Aborting.");
+                    return;
+                }
+            }
+        }
+    };
+    println!("Token loaded successfully.");
 
     let mut client = Client::builder(&token)
         .event_handler(Handler)

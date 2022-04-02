@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 Cargo.lock
 config.py
+discord_token.txt
