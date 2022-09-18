@@ -2,7 +2,7 @@ use chrono::prelude::*;
 use rand::Rng;
 use serenity::{
     async_trait,
-    model::{channel::Message, gateway::Ready},
+    model::{channel::Message, gateway::GatewayIntents, gateway::Ready},
     prelude::*,
 };
 use std::env;
@@ -172,7 +172,10 @@ async fn main() {
     };
     println!("Token loaded successfully.");
 
-    let mut client = Client::builder(&token)
+    let intents = GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::DIRECT_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT;
+    let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .await
         .expect("Error creating client");
